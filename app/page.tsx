@@ -1,9 +1,19 @@
 "use client";
 
 import Image from "next/image";
+import { AsYouType } from "libphonenumber-js";
 import { useState } from "react";
 
 type Toast = { kind: "success" | "error"; message: string } | null;
+
+function formatUsPhone(raw: string): string {
+  let digits = raw.replace(/\D/g, "");
+  if (digits.length === 11 && digits.startsWith("1")) {
+    digits = digits.slice(1);
+  }
+  digits = digits.slice(0, 10);
+  return new AsYouType("US").input(digits);
+}
 
 export default function Home() {
   const [to, setTo] = useState("");
@@ -86,7 +96,7 @@ export default function Home() {
                 htmlFor="to"
                 className="block text-sm font-medium text-neutral-700 mb-1.5"
               >
-                Phone number
+                SSA office number
               </label>
               <input
                 id="to"
@@ -95,7 +105,7 @@ export default function Home() {
                 autoComplete="off"
                 placeholder="(555) 123-4567"
                 value={to}
-                onChange={(e) => setTo(e.target.value)}
+                onChange={(e) => setTo(formatUsPhone(e.target.value))}
                 disabled={submitting}
                 className="w-full h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
               />
@@ -106,7 +116,18 @@ export default function Home() {
               disabled={submitting || !to.trim()}
               className="w-full h-10 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
             >
-              {submitting ? "Initiating call..." : "Initiate call"}
+              {submitting ? (
+                <span className="inline-flex items-center">
+                  Dialing
+                  <span className="inline-flex ml-0.5 w-5 justify-start">
+                    <span className="dot-anim">.</span>
+                    <span className="dot-anim" style={{ animationDelay: "0.2s" }}>.</span>
+                    <span className="dot-anim" style={{ animationDelay: "0.4s" }}>.</span>
+                  </span>
+                </span>
+              ) : (
+                "Initiate call"
+              )}
             </button>
           </form>
 
@@ -123,6 +144,10 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        <footer className="mt-6 text-center text-xs text-neutral-500">
+          Powered by Finch
+        </footer>
       </div>
     </main>
   );
