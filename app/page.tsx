@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { AsYouType } from "libphonenumber-js";
 import { useState } from "react";
 
@@ -143,6 +144,15 @@ export default function Home() {
               {toast.message}
             </div>
           )}
+        </div>
+
+        <div className="mt-5 text-center">
+          <Link
+            href="/dashboard"
+            className="text-sm font-medium text-brand hover:text-brand-dark transition-colors"
+          >
+            View call history →
+          </Link>
         </div>
 
         <footer className="mt-6 text-center text-xs text-neutral-500">

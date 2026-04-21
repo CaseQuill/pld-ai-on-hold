@@ -6,6 +6,7 @@ import {
   perIpLimiter,
 } from "@/lib/ratelimit";
 import { fireElevenLabsCall } from "@/lib/elevenlabs";
+import { hasDb, insertCall } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -69,6 +70,18 @@ export async function POST(req: NextRequest) {
       { ok: false, error: `ElevenLabs error: ${result.error}` },
       { status: 502 }
     );
+  }
+
+  if (hasDb() && result.conversationId) {
+    try {
+      await insertCall({
+        conversationId: result.conversationId,
+        toNumber: phone.e164,
+        phnumId,
+      });
+    } catch (err) {
+      console.error("[pdl-dialer] Failed to persist call:", err);
+    }
   }
 
   return NextResponse.json({
