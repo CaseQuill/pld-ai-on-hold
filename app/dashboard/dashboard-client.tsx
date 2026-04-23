@@ -10,7 +10,13 @@ type Props = { initialCalls: CallRow[] };
 const STATUS_STYLES: Record<string, string> = {
   active: "bg-brand-light text-brand border border-brand/20",
   transferred: "bg-green-50 text-green-700 border border-green-200",
-  failed: "bg-red-50 text-red-700 border border-red-200",
+  failed: "bg-orange-50 text-orange-700 border border-orange-200",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  active: "Active",
+  transferred: "Transferred",
+  failed: "Completed",
 };
 
 function formatPhone(e164: string): string {
@@ -30,7 +36,6 @@ function formatLocalTime(iso: string): string {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZoneName: "short",
   });
 }
 
@@ -164,9 +169,9 @@ export default function DashboardClient({ initialCalls }: Props) {
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize ${badge}`}
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${badge}`}
                           >
-                            {c.status}
+                            {STATUS_LABELS[statusKey] ?? c.status}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-neutral-500 font-mono text-xs">
