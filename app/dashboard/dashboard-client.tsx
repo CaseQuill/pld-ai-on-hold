@@ -24,23 +24,26 @@ function formatPhone(e164: string): string {
   return e164;
 }
 
-function formatRelative(iso: string): string {
-  const then = new Date(iso).getTime();
-  const now = Date.now();
-  const diff = Math.max(0, Math.floor((now - then) / 1000));
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
-
-function formatAbsolute(iso: string): string {
+function formatLocalTime(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZoneName: "short",
   });
+}
+
+function formatDuration(startIso: string, endIso: string | null): string {
+  const start = new Date(startIso).getTime();
+  const end = endIso ? new Date(endIso).getTime() : Date.now();
+  const totalSecs = Math.max(0, Math.floor((end - start) / 1000));
+  const hours = Math.floor(totalSecs / 3600);
+  const minutes = Math.floor((totalSecs % 3600) / 60);
+  const secs = totalSecs % 60;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${secs}s`;
+  return `${secs}s`;
 }
 
 export default function DashboardClient({ initialCalls }: Props) {
@@ -71,7 +74,7 @@ export default function DashboardClient({ initialCalls }: Props) {
   }, []);
 
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -129,7 +132,8 @@ export default function DashboardClient({ initialCalls }: Props) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs uppercase tracking-wide text-neutral-500 border-b border-divider">
-                    <th className="font-medium px-6 sm:px-8 py-2.5">Time</th>
+                    <th className="font-medium px-6 sm:px-8 py-2.5">Started</th>
+                    <th className="font-medium px-4 py-2.5">Duration</th>
                     <th className="font-medium px-4 py-2.5">Number</th>
                     <th className="font-medium px-4 py-2.5">Status</th>
                     <th className="font-medium px-4 py-2.5">Conversation ID</th>
@@ -146,11 +150,14 @@ export default function DashboardClient({ initialCalls }: Props) {
                         key={c.id}
                         className="border-b border-divider last:border-b-0 hover:bg-surface-subtle transition-colors"
                       >
-                        <td
-                          className="px-6 sm:px-8 py-3 text-neutral-700 whitespace-nowrap"
-                          title={formatAbsolute(c.fired_at)}
-                        >
-                          {formatRelative(c.fired_at)}
+                        <td className="px-6 sm:px-8 py-3 text-neutral-700 whitespace-nowrap">
+                          {formatLocalTime(c.fired_at)}
+                        </td>
+                        <td className="px-4 py-3 text-neutral-700 font-mono text-xs whitespace-nowrap tabular-nums">
+                          {formatDuration(c.fired_at, c.ended_at)}
+                          {c.status === "active" && (
+                            <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-brand animate-pulse align-middle" />
+                          )}
                         </td>
                         <td className="px-4 py-3 text-neutral-900 font-medium whitespace-nowrap">
                           {formatPhone(c.to_number)}
