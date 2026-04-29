@@ -11,6 +11,8 @@ export type CallRow = {
   fired_at: string;
   ended_at: string | null;
   end_reason: string | null;
+  estimated_hold_minutes: number | null;
+  hold_minutes_reported_at: string | null;
 };
 
 let sqlClient: ReturnType<typeof neon> | null = null;
@@ -59,10 +61,26 @@ export async function listRecentCalls(limit = 50): Promise<CallRow[]> {
   const sql = getSql();
   const rows = await sql`
     select id, conversation_id, to_number, phnum_id, status,
-           fired_at, ended_at, end_reason
+           fired_at, ended_at, end_reason,
+           estimated_hold_minutes, hold_minutes_reported_at
     from calls
     order by fired_at desc
     limit ${limit}
   `;
   return rows as unknown as CallRow[];
+}
+
+export async function recordHoldTime(args: {
+  conversationId: string;
+  estimatedMinutes: number;
+}): Promise<{ updated: boolean }> {
+  const sql = getSql();
+  const rows = (await sql`
+    update calls
+    set estimated_hold_minutes = ${args.estimatedMinutes},
+        hold_minutes_reported_at = now()
+    where conversation_id = ${args.conversationId}
+    returning id
+  `) as unknown as Array<{ id: string }>;
+  return { updated: rows.length > 0 };
 }
