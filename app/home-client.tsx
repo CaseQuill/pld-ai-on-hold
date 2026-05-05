@@ -6,7 +6,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CallRow } from "@/lib/db";
 
 type Toast = { kind: "success" | "error"; message: string } | null;
-type Props = { initialCalls: CallRow[]; dbAvailable: boolean };
+type Props = {
+  initialCalls: CallRow[];
+  dbAvailable: boolean;
+  showConversationId?: boolean;
+};
 
 const PAGE_SIZE = 10;
 
@@ -100,7 +104,11 @@ function sortCalls(calls: CallRow[]): CallRow[] {
   });
 }
 
-export default function HomeClient({ initialCalls, dbAvailable }: Props) {
+export default function HomeClient({
+  initialCalls,
+  dbAvailable,
+  showConversationId = false,
+}: Props) {
   const [to, setTo] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
@@ -315,7 +323,9 @@ export default function HomeClient({ initialCalls, dbAvailable }: Props) {
                           </th>
                           <th className="font-medium px-4 py-2.5">Number</th>
                           <th className="font-medium px-4 py-2.5">Status</th>
-                          <th className="font-medium px-4 py-2.5">Conversation ID</th>
+                          {showConversationId && (
+                            <th className="font-medium px-4 py-2.5">Conversation ID</th>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -355,18 +365,20 @@ export default function HomeClient({ initialCalls, dbAvailable }: Props) {
                                   {STATUS_LABELS[statusKey] ?? c.status}
                                 </span>
                               </td>
-                              <td className="px-4 py-3 text-neutral-500 font-mono text-xs">
-                                <button
-                                  type="button"
-                                  onClick={() => copyId(c.conversation_id)}
-                                  className="hover:text-brand transition-colors"
-                                  title="Copy conversation ID"
-                                >
-                                  {copiedId === c.conversation_id
-                                    ? "Copied!"
-                                    : `${c.conversation_id.slice(0, 22)}...`}
-                                </button>
-                              </td>
+                              {showConversationId && (
+                                <td className="px-4 py-3 text-neutral-500 font-mono text-xs">
+                                  <button
+                                    type="button"
+                                    onClick={() => copyId(c.conversation_id)}
+                                    className="hover:text-brand transition-colors"
+                                    title="Copy conversation ID"
+                                  >
+                                    {copiedId === c.conversation_id
+                                      ? "Copied!"
+                                      : `${c.conversation_id.slice(0, 22)}...`}
+                                  </button>
+                                </td>
+                              )}
                             </tr>
                           );
                         })}
