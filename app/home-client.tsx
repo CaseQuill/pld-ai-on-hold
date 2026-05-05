@@ -63,6 +63,24 @@ function formatDuration(startIso: string, endIso: string | null): string {
   return `${secs}s`;
 }
 
+function formatHoldCountdown(
+  reportedAtIso: string | null,
+  estimatedMinutes: number | null,
+  isActive: boolean
+): string {
+  if (estimatedMinutes == null) return "";
+  if (!isActive || !reportedAtIso) return `~ ${estimatedMinutes}m`;
+  const reportedAt = new Date(reportedAtIso).getTime();
+  const targetMs = reportedAt + estimatedMinutes * 60_000;
+  const remaining = targetMs - Date.now();
+  if (remaining <= 0) return "~ due";
+  const totalSecs = Math.floor(remaining / 1000);
+  const minutes = Math.floor(totalSecs / 60);
+  const secs = totalSecs % 60;
+  if (minutes > 0) return `~ ${minutes}m ${secs}s`;
+  return `~ ${secs}s`;
+}
+
 const RECENT_END_WINDOW_MS = 3 * 60 * 1000;
 
 function pinTier(c: CallRow, now: number): number {
@@ -289,6 +307,12 @@ export default function HomeClient({ initialCalls, dbAvailable }: Props) {
                         <tr className="text-left text-xs uppercase tracking-wide text-neutral-500 border-b border-divider">
                           <th className="font-medium px-6 sm:px-8 py-2.5">Started</th>
                           <th className="font-medium px-4 py-2.5">Duration</th>
+                          <th
+                            className="font-medium px-4 py-2.5"
+                            title="Estimated wait time as announced by SSA. Estimate only."
+                          >
+                            Est. hold
+                          </th>
                           <th className="font-medium px-4 py-2.5">Number</th>
                           <th className="font-medium px-4 py-2.5">Status</th>
                           <th className="font-medium px-4 py-2.5">Conversation ID</th>
@@ -312,6 +336,13 @@ export default function HomeClient({ initialCalls, dbAvailable }: Props) {
                                 {formatDuration(c.fired_at, c.ended_at)}
                                 {c.status === "active" && (
                                   <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-brand animate-pulse align-middle" />
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-neutral-700 font-mono text-xs whitespace-nowrap tabular-nums">
+                                {formatHoldCountdown(
+                                  c.hold_minutes_reported_at,
+                                  c.estimated_hold_minutes,
+                                  c.status === "active"
                                 )}
                               </td>
                               <td className="px-4 py-3 text-neutral-900 font-medium whitespace-nowrap">
