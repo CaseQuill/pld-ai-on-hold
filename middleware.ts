@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Skip auth for webhook endpoints (server-to-server)
-  if (pathname.startsWith("/api/webhook")) {
+  // Skip auth for server-to-server endpoints (webhooks + agent tool callbacks).
+  // These authenticate via their own secrets (HMAC for /api/webhook,
+  // bearer token for /api/tools).
+  if (pathname.startsWith("/api/webhook") || pathname.startsWith("/api/tools")) {
     return NextResponse.next();
   }
 
