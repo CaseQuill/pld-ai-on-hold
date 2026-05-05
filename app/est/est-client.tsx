@@ -82,7 +82,7 @@ function sortCalls(calls: CallRow[]): CallRow[] {
   });
 }
 
-export default function HomeClient({ initialCalls, dbAvailable }: Props) {
+export default function EstClient({ initialCalls, dbAvailable }: Props) {
   const [to, setTo] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
@@ -289,6 +289,12 @@ export default function HomeClient({ initialCalls, dbAvailable }: Props) {
                         <tr className="text-left text-xs uppercase tracking-wide text-neutral-500 border-b border-divider">
                           <th className="font-medium px-6 sm:px-8 py-2.5">Started</th>
                           <th className="font-medium px-4 py-2.5">Duration</th>
+                          <th
+                            className="font-medium px-4 py-2.5"
+                            title="Estimated wait time as announced by SSA. Estimate only."
+                          >
+                            Est. hold
+                          </th>
                           <th className="font-medium px-4 py-2.5">Number</th>
                           <th className="font-medium px-4 py-2.5">Status</th>
                           <th className="font-medium px-4 py-2.5">Conversation ID</th>
@@ -313,6 +319,11 @@ export default function HomeClient({ initialCalls, dbAvailable }: Props) {
                                 {c.status === "active" && (
                                   <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-brand animate-pulse align-middle" />
                                 )}
+                              </td>
+                              <td className="px-4 py-3 text-neutral-700 font-mono text-xs whitespace-nowrap tabular-nums">
+                                {c.estimated_hold_minutes != null
+                                  ? `~${c.estimated_hold_minutes}m`
+                                  : ""}
                               </td>
                               <td className="px-4 py-3 text-neutral-900 font-medium whitespace-nowrap">
                                 {formatPhone(c.to_number)}
