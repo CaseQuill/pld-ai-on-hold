@@ -63,6 +63,24 @@ function formatDuration(startIso: string, endIso: string | null): string {
   return `${secs}s`;
 }
 
+function formatHoldCountdown(
+  reportedAtIso: string | null,
+  estimatedMinutes: number | null,
+  isActive: boolean
+): string {
+  if (estimatedMinutes == null) return "";
+  if (!isActive || !reportedAtIso) return `~ ${estimatedMinutes}m`;
+  const reportedAt = new Date(reportedAtIso).getTime();
+  const targetMs = reportedAt + estimatedMinutes * 60_000;
+  const remaining = targetMs - Date.now();
+  if (remaining <= 0) return "~ due";
+  const totalSecs = Math.floor(remaining / 1000);
+  const minutes = Math.floor(totalSecs / 60);
+  const secs = totalSecs % 60;
+  if (minutes > 0) return `~ ${minutes}m ${secs}s`;
+  return `~ ${secs}s`;
+}
+
 const RECENT_END_WINDOW_MS = 3 * 60 * 1000;
 
 function pinTier(c: CallRow, now: number): number {
@@ -321,9 +339,11 @@ export default function EstClient({ initialCalls, dbAvailable }: Props) {
                                 )}
                               </td>
                               <td className="px-4 py-3 text-neutral-700 font-mono text-xs whitespace-nowrap tabular-nums">
-                                {c.estimated_hold_minutes != null
-                                  ? `~${c.estimated_hold_minutes}m`
-                                  : ""}
+                                {formatHoldCountdown(
+                                  c.hold_minutes_reported_at,
+                                  c.estimated_hold_minutes,
+                                  c.status === "active"
+                                )}
                               </td>
                               <td className="px-4 py-3 text-neutral-900 font-medium whitespace-nowrap">
                                 {formatPhone(c.to_number)}
