@@ -289,10 +289,10 @@ export default function HomeClient({
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="flex items-center gap-2">
             <Image
-              src="/finch-logo.svg"
+              src="/finch-bird.png"
               alt="Finch"
-              width={26}
-              height={21}
+              width={24}
+              height={24}
               priority
             />
             <span className="text-header font-semibold text-lg tracking-tight">
