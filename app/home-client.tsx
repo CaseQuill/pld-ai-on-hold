@@ -105,6 +105,44 @@ function isRecentlyTransferred(c: CallRow, now: number): boolean {
   );
 }
 
+function buildClaimDemoRows(): CallRow[] {
+  const now = Date.now();
+  return [
+    {
+      id: "demo-unclaimed",
+      conversation_id: "demo_unclaimed",
+      to_number: "+15551234567",
+      phnum_id: "demo",
+      status: "transferred",
+      fired_at: new Date(now - 5 * 60 * 1000).toISOString(),
+      ended_at: new Date(now - 30 * 1000).toISOString(),
+      end_reason: null,
+      estimated_hold_minutes: 5,
+      hold_minutes_reported_at: new Date(now - 4 * 60 * 1000).toISOString(),
+      matter_id: "Demo — ready to claim",
+      claimed_at: null,
+    },
+    {
+      id: "demo-claimed",
+      conversation_id: "demo_claimed",
+      to_number: "+15551234567",
+      phnum_id: "demo",
+      status: "transferred",
+      fired_at: new Date(now - 10 * 60 * 1000).toISOString(),
+      ended_at: new Date(now - 90 * 1000).toISOString(),
+      end_reason: null,
+      estimated_hold_minutes: null,
+      hold_minutes_reported_at: null,
+      matter_id: "Demo — claimed",
+      claimed_at: new Date(now - 30 * 1000).toISOString(),
+    },
+  ];
+}
+
+function isDemoRow(c: CallRow): boolean {
+  return c.conversation_id.startsWith("demo_");
+}
+
 function sortCalls(calls: CallRow[], claimAware: boolean): CallRow[] {
   const now = Date.now();
   return [...calls].sort((a, b) => {
@@ -213,6 +251,14 @@ export default function HomeClient({
   }
 
   async function onClaim(conversationId: string) {
+    if (conversationId.startsWith("demo_")) {
+      setToast({
+        kind: "success",
+        message: "Demo row — real calls will claim normally.",
+      });
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
     const nowIso = new Date().toISOString();
     setCalls((prev) =>
       prev.map((c) =>
@@ -277,20 +323,20 @@ export default function HomeClient({
 
           <form
             onSubmit={onSubmit}
-            className="flex flex-col gap-3 max-w-xl mx-auto"
+            className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 max-w-xl mx-auto"
           >
             <input
               id="matter"
               type="text"
               autoComplete="off"
-              placeholder="Matter ID or task ID"
+              placeholder="Matter ID"
               value={matter}
               onChange={(e) => setMatter(e.target.value)}
               disabled={submitting}
               maxLength={100}
               required
               aria-label="Matter ID"
-              className="h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+              className="sm:col-start-1 sm:row-start-1 h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <input
               id="to"
@@ -302,12 +348,12 @@ export default function HomeClient({
               onChange={(e) => setTo(formatUsPhone(e.target.value))}
               disabled={submitting}
               aria-label="SSA office number"
-              className="h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+              className="sm:col-start-1 sm:row-start-2 h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               type="submit"
               disabled={submitting || !to.trim() || !matter.trim()}
-              className="h-10 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="sm:col-start-2 sm:row-start-2 h-10 px-5 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {submitting ? (
                 <span className="inline-flex items-center">
@@ -344,7 +390,9 @@ export default function HomeClient({
           const safePage = Math.min(page, totalPages - 1);
           const start = safePage * PAGE_SIZE;
           const end = Math.min(start + PAGE_SIZE, sorted.length);
-          const visible = sorted.slice(start, end);
+          const realVisible = sorted.slice(start, end);
+          const demoRows = showClaim ? buildClaimDemoRows() : [];
+          const visible = [...demoRows, ...realVisible];
           return (
             <div className="bg-white border border-divider rounded-md shadow-sm p-6 sm:p-8">
               <div className="mb-4">
@@ -363,7 +411,7 @@ export default function HomeClient({
                 <div className="py-10 text-center text-sm text-neutral-500">
                   Database is not configured. Set <code>DATABASE_URL</code> to enable.
                 </div>
-              ) : calls.length === 0 ? (
+              ) : calls.length === 0 && !showClaim ? (
                 <div className="py-10 text-center text-sm text-neutral-500">
                   No calls yet.
                 </div>
@@ -403,10 +451,15 @@ export default function HomeClient({
                           const statusLabel = justTransferred
                             ? "Just transferred"
                             : STATUS_LABELS[statusKey] ?? c.status;
+                          const demo = isDemoRow(c);
                           return (
                             <tr
                               key={c.id}
-                              className="border-b border-divider last:border-b-0 hover:bg-surface-subtle transition-colors"
+                              className={`border-b border-divider last:border-b-0 transition-colors ${
+                                demo
+                                  ? "bg-blue-50/40 hover:bg-blue-50/60"
+                                  : "hover:bg-surface-subtle"
+                              }`}
                             >
                               <td className="px-6 sm:px-8 py-3 text-neutral-700 whitespace-nowrap">
                                 {formatLocalTime(c.fired_at)}
