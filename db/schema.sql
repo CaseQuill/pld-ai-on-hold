@@ -13,7 +13,8 @@ create table if not exists calls (
   end_reason text,
   estimated_hold_minutes int,
   hold_minutes_reported_at timestamptz,
-  matter_id text
+  matter_id text,
+  claimed_at timestamptz
 );
 
 create index if not exists calls_fired_at_desc_idx on calls (fired_at desc);

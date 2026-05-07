@@ -10,6 +10,7 @@ type Props = {
   initialCalls: CallRow[];
   dbAvailable: boolean;
   showConversationId?: boolean;
+  showClaim?: boolean;
 };
 
 const PAGE_SIZE = 10;
@@ -104,13 +105,18 @@ function isRecentlyTransferred(c: CallRow, now: number): boolean {
   );
 }
 
-function sortCalls(calls: CallRow[]): CallRow[] {
+function sortCalls(calls: CallRow[], claimAware: boolean): CallRow[] {
   const now = Date.now();
   return [...calls].sort((a, b) => {
     const ta = pinTier(a, now);
     const tb = pinTier(b, now);
     if (ta !== tb) return ta - tb;
     if (ta === 1 && a.ended_at && b.ended_at) {
+      if (claimAware) {
+        const aClaimed = a.claimed_at ? 1 : 0;
+        const bClaimed = b.claimed_at ? 1 : 0;
+        if (aClaimed !== bClaimed) return aClaimed - bClaimed;
+      }
       return new Date(b.ended_at).getTime() - new Date(a.ended_at).getTime();
     }
     return new Date(b.fired_at).getTime() - new Date(a.fired_at).getTime();
@@ -121,6 +127,7 @@ export default function HomeClient({
   initialCalls,
   dbAvailable,
   showConversationId = false,
+  showClaim = false,
 }: Props) {
   const [to, setTo] = useState("");
   const [matter, setMatter] = useState("");
@@ -203,6 +210,31 @@ export default function HomeClient({
       setCopiedId(id);
       setTimeout(() => setCopiedId((c) => (c === id ? null : c)), 1500);
     } catch {}
+  }
+
+  async function onClaim(conversationId: string) {
+    const nowIso = new Date().toISOString();
+    setCalls((prev) =>
+      prev.map((c) =>
+        c.conversation_id === conversationId ? { ...c, claimed_at: nowIso } : c
+      )
+    );
+    try {
+      const res = await fetch("/api/calls/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversation_id: conversationId }),
+      });
+      if (!res.ok) throw new Error("claim failed");
+    } catch {
+      setCalls((prev) =>
+        prev.map((c) =>
+          c.conversation_id === conversationId ? { ...c, claimed_at: null } : c
+        )
+      );
+      setToast({ kind: "error", message: "Could not claim call. Try again." });
+      setTimeout(() => setToast(null), 5000);
+    }
   }
 
   return (
@@ -309,7 +341,7 @@ export default function HomeClient({
         </div>
 
         {(() => {
-          const sorted = sortCalls(calls);
+          const sorted = sortCalls(calls, showClaim);
           const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
           const safePage = Math.min(page, totalPages - 1);
           const start = safePage * PAGE_SIZE;
@@ -356,6 +388,9 @@ export default function HomeClient({
                           <th className="font-medium px-4 py-2.5">Status</th>
                           {showConversationId && (
                             <th className="font-medium px-4 py-2.5">Conversation ID</th>
+                          )}
+                          {showClaim && (
+                            <th className="font-medium px-4 py-2.5">Claim</th>
                           )}
                         </tr>
                       </thead>
@@ -419,6 +454,27 @@ export default function HomeClient({
                                       ? "Copied!"
                                       : `${c.conversation_id.slice(0, 22)}...`}
                                   </button>
+                                </td>
+                              )}
+                              {showClaim && (
+                                <td className="px-4 py-3">
+                                  {c.claimed_at ? (
+                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                                      <span aria-hidden>✓</span> Claimed
+                                    </span>
+                                  ) : c.status === "transferred" &&
+                                    c.ended_at &&
+                                    Date.now() -
+                                      new Date(c.ended_at).getTime() <
+                                      RECENT_END_WINDOW_MS ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => onClaim(c.conversation_id)}
+                                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-brand text-brand hover:bg-brand hover:text-white transition-colors"
+                                    >
+                                      Claim
+                                    </button>
+                                  ) : null}
                                 </td>
                               )}
                             </tr>
