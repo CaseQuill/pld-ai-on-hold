@@ -86,6 +86,7 @@ function formatHoldCountdown(
 }
 
 const RECENT_END_WINDOW_MS = 3 * 60 * 1000;
+const RECENT_TRANSFER_WINDOW_MS = 60 * 1000;
 
 function pinTier(c: CallRow, now: number): number {
   if (c.status === "active") return 0;
@@ -95,11 +96,23 @@ function pinTier(c: CallRow, now: number): number {
   return 2;
 }
 
+function isRecentlyTransferred(c: CallRow, now: number): boolean {
+  return (
+    c.status === "transferred" &&
+    !!c.ended_at &&
+    now - new Date(c.ended_at).getTime() < RECENT_TRANSFER_WINDOW_MS
+  );
+}
+
 function sortCalls(calls: CallRow[]): CallRow[] {
   const now = Date.now();
   return [...calls].sort((a, b) => {
-    const tierDiff = pinTier(a, now) - pinTier(b, now);
-    if (tierDiff !== 0) return tierDiff;
+    const ta = pinTier(a, now);
+    const tb = pinTier(b, now);
+    if (ta !== tb) return ta - tb;
+    if (ta === 1 && a.ended_at && b.ended_at) {
+      return new Date(b.ended_at).getTime() - new Date(a.ended_at).getTime();
+    }
     return new Date(b.fired_at).getTime() - new Date(a.fired_at).getTime();
   });
 }
@@ -110,6 +123,7 @@ export default function HomeClient({
   showConversationId = false,
 }: Props) {
   const [to, setTo] = useState("");
+  const [matter, setMatter] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
 
@@ -158,7 +172,7 @@ export default function HomeClient({
       const res = await fetch("/api/call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to }),
+        body: JSON.stringify({ to, matter: matter.trim() || undefined }),
       });
       const data = (await res.json()) as {
         ok: boolean;
@@ -169,6 +183,7 @@ export default function HomeClient({
       if (data.ok) {
         setToast({ kind: "success", message: `Call initiated to ${data.to}` });
         setTo("");
+        setMatter("");
         setPage(0);
         refreshHistory();
       } else {
@@ -230,38 +245,52 @@ export default function HomeClient({
 
           <form
             onSubmit={onSubmit}
-            className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto"
+            className="flex flex-col gap-3 max-w-xl mx-auto"
           >
             <input
-              id="to"
-              type="tel"
-              inputMode="tel"
+              id="matter"
+              type="text"
               autoComplete="off"
-              placeholder="(555) 123-4567"
-              value={to}
-              onChange={(e) => setTo(formatUsPhone(e.target.value))}
+              placeholder="Matter ID or task ID (optional)"
+              value={matter}
+              onChange={(e) => setMatter(e.target.value)}
               disabled={submitting}
-              aria-label="SSA office number"
-              className="flex-1 h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+              maxLength={100}
+              aria-label="Matter ID"
+              className="h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            <button
-              type="submit"
-              disabled={submitting || !to.trim()}
-              className="h-10 px-5 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed whitespace-nowrap"
-            >
-              {submitting ? (
-                <span className="inline-flex items-center">
-                  Dialing
-                  <span className="inline-flex ml-0.5 w-5 justify-start">
-                    <span className="dot-anim">.</span>
-                    <span className="dot-anim" style={{ animationDelay: "0.2s" }}>.</span>
-                    <span className="dot-anim" style={{ animationDelay: "0.4s" }}>.</span>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                id="to"
+                type="tel"
+                inputMode="tel"
+                autoComplete="off"
+                placeholder="(555) 123-4567"
+                value={to}
+                onChange={(e) => setTo(formatUsPhone(e.target.value))}
+                disabled={submitting}
+                aria-label="SSA office number"
+                className="flex-1 h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <button
+                type="submit"
+                disabled={submitting || !to.trim()}
+                className="h-10 px-5 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed whitespace-nowrap"
+              >
+                {submitting ? (
+                  <span className="inline-flex items-center">
+                    Dialing
+                    <span className="inline-flex ml-0.5 w-5 justify-start">
+                      <span className="dot-anim">.</span>
+                      <span className="dot-anim" style={{ animationDelay: "0.2s" }}>.</span>
+                      <span className="dot-anim" style={{ animationDelay: "0.4s" }}>.</span>
+                    </span>
                   </span>
-                </span>
-              ) : (
-                "Initiate call"
-              )}
-            </button>
+                ) : (
+                  "Initiate call"
+                )}
+              </button>
+            </div>
           </form>
 
           {toast && (
@@ -322,6 +351,7 @@ export default function HomeClient({
                             Est. hold
                           </th>
                           <th className="font-medium px-4 py-2.5">Number</th>
+                          <th className="font-medium px-4 py-2.5">Matter ID</th>
                           <th className="font-medium px-4 py-2.5">Status</th>
                           {showConversationId && (
                             <th className="font-medium px-4 py-2.5">Conversation ID</th>
@@ -331,9 +361,14 @@ export default function HomeClient({
                       <tbody>
                         {visible.map((c) => {
                           const statusKey = c.status.toLowerCase();
-                          const badge =
-                            STATUS_STYLES[statusKey] ??
-                            "bg-neutral-100 text-neutral-700 border border-neutral-200";
+                          const justTransferred = isRecentlyTransferred(c, Date.now());
+                          const badge = justTransferred
+                            ? "bg-amber-50 text-amber-800 border border-amber-200 animate-pulse"
+                            : STATUS_STYLES[statusKey] ??
+                              "bg-neutral-100 text-neutral-700 border border-neutral-200";
+                          const statusLabel = justTransferred
+                            ? "Just transferred"
+                            : STATUS_LABELS[statusKey] ?? c.status;
                           return (
                             <tr
                               key={c.id}
@@ -358,11 +393,17 @@ export default function HomeClient({
                               <td className="px-4 py-3 text-neutral-900 font-medium whitespace-nowrap">
                                 {formatPhone(c.to_number)}
                               </td>
+                              <td
+                                className="px-4 py-3 text-neutral-700 font-mono text-xs max-w-[180px] truncate"
+                                title={c.matter_id ?? undefined}
+                              >
+                                {c.matter_id ?? ""}
+                              </td>
                               <td className="px-4 py-3">
                                 <span
                                   className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${badge}`}
                                 >
-                                  {STATUS_LABELS[statusKey] ?? c.status}
+                                  {statusLabel}
                                 </span>
                               </td>
                               {showConversationId && (

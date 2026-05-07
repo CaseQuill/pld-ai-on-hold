@@ -17,9 +17,9 @@ function getClientIp(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
-  let body: { to?: unknown };
+  let body: { to?: unknown; matter?: unknown };
   try {
-    body = (await req.json()) as { to?: unknown };
+    body = (await req.json()) as { to?: unknown; matter?: unknown };
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }
@@ -28,6 +28,15 @@ export async function POST(req: NextRequest) {
   if (!phone.ok) {
     return NextResponse.json({ ok: false, error: phone.error }, { status: 400 });
   }
+
+  const matterRaw = typeof body.matter === "string" ? body.matter.trim() : "";
+  if (matterRaw.length > 100) {
+    return NextResponse.json(
+      { ok: false, error: "Matter ID is too long (max 100 chars)" },
+      { status: 400 }
+    );
+  }
+  const matterId = matterRaw.length > 0 ? matterRaw : null;
 
   const ip = getClientIp(req);
   const ipLimit = await perIpLimiter.limit(ip);
@@ -78,6 +87,7 @@ export async function POST(req: NextRequest) {
         conversationId: result.conversationId,
         toNumber: phone.e164,
         phnumId,
+        matterId,
       });
     } catch (err) {
       console.error("[pdl-dialer] Failed to persist call:", err);
