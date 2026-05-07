@@ -326,6 +326,18 @@ export default function HomeClient({
             className="flex flex-col items-center gap-3 max-w-xl mx-auto"
           >
             <input
+              id="to"
+              type="tel"
+              inputMode="tel"
+              autoComplete="off"
+              placeholder="(555) 123-4567"
+              value={to}
+              onChange={(e) => setTo(formatUsPhone(e.target.value))}
+              disabled={submitting}
+              aria-label="SSA office number"
+              className="w-full max-w-xs h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <input
               id="matter"
               type="text"
               autoComplete="off"
@@ -336,18 +348,6 @@ export default function HomeClient({
               maxLength={100}
               required
               aria-label="Matter ID"
-              className="w-full max-w-xs h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-            <input
-              id="to"
-              type="tel"
-              inputMode="tel"
-              autoComplete="off"
-              placeholder="(555) 123-4567"
-              value={to}
-              onChange={(e) => setTo(formatUsPhone(e.target.value))}
-              disabled={submitting}
-              aria-label="SSA office number"
               className="w-full max-w-xs h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
