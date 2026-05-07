@@ -14,6 +14,7 @@ export default async function ClaimPage() {
       initialCalls={initialCalls}
       dbAvailable={dbAvailable}
       showClaim
+      showDemoRows
     />
   );
 }

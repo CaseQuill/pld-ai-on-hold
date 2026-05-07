@@ -11,6 +11,7 @@ type Props = {
   dbAvailable: boolean;
   showConversationId?: boolean;
   showClaim?: boolean;
+  showDemoRows?: boolean;
 };
 
 const PAGE_SIZE = 10;
@@ -168,6 +169,7 @@ export default function HomeClient({
   dbAvailable,
   showConversationId = false,
   showClaim = false,
+  showDemoRows = false,
 }: Props) {
   const [to, setTo] = useState("");
   const [matter, setMatter] = useState("");
@@ -394,7 +396,7 @@ export default function HomeClient({
           const start = safePage * PAGE_SIZE;
           const end = Math.min(start + PAGE_SIZE, sorted.length);
           const realVisible = sorted.slice(start, end);
-          const demoRows = showClaim ? buildClaimDemoRows(demoClaimed) : [];
+          const demoRows = showDemoRows ? buildClaimDemoRows(demoClaimed) : [];
           const visible = [...demoRows, ...realVisible];
           return (
             <div className="bg-white border border-divider rounded-md shadow-sm p-6 sm:p-8">
@@ -414,7 +416,7 @@ export default function HomeClient({
                 <div className="py-10 text-center text-sm text-neutral-500">
                   Database is not configured. Set <code>DATABASE_URL</code> to enable.
                 </div>
-              ) : calls.length === 0 && !showClaim ? (
+              ) : calls.length === 0 && !showDemoRows ? (
                 <div className="py-10 text-center text-sm text-neutral-500">
                   No calls yet.
                 </div>

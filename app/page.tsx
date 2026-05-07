@@ -9,5 +9,11 @@ export default async function Home() {
     ? await listRecentCalls(50).catch(() => [])
     : [];
 
-  return <HomeClient initialCalls={initialCalls} dbAvailable={dbAvailable} />;
+  return (
+    <HomeClient
+      initialCalls={initialCalls}
+      dbAvailable={dbAvailable}
+      showClaim
+    />
+  );
 }
