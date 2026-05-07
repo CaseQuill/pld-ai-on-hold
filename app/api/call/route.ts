@@ -30,13 +30,19 @@ export async function POST(req: NextRequest) {
   }
 
   const matterRaw = typeof body.matter === "string" ? body.matter.trim() : "";
+  if (matterRaw.length === 0) {
+    return NextResponse.json(
+      { ok: false, error: "Matter ID is required" },
+      { status: 400 }
+    );
+  }
   if (matterRaw.length > 100) {
     return NextResponse.json(
       { ok: false, error: "Matter ID is too long (max 100 chars)" },
       { status: 400 }
     );
   }
-  const matterId = matterRaw.length > 0 ? matterRaw : null;
+  const matterId = matterRaw;
 
   const ip = getClientIp(req);
   const ipLimit = await perIpLimiter.limit(ip);

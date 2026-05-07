@@ -251,11 +251,12 @@ export default function HomeClient({
               id="matter"
               type="text"
               autoComplete="off"
-              placeholder="Matter ID or task ID (optional)"
+              placeholder="Matter ID or task ID"
               value={matter}
               onChange={(e) => setMatter(e.target.value)}
               disabled={submitting}
               maxLength={100}
+              required
               aria-label="Matter ID"
               className="h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -274,7 +275,7 @@ export default function HomeClient({
               />
               <button
                 type="submit"
-                disabled={submitting || !to.trim()}
+                disabled={submitting || !to.trim() || !matter.trim()}
                 className="h-10 px-5 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed whitespace-nowrap"
               >
                 {submitting ? (
