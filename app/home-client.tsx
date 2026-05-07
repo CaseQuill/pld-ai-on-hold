@@ -292,38 +292,36 @@ export default function HomeClient({
               aria-label="Matter ID"
               className="h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                id="to"
-                type="tel"
-                inputMode="tel"
-                autoComplete="off"
-                placeholder="(555) 123-4567"
-                value={to}
-                onChange={(e) => setTo(formatUsPhone(e.target.value))}
-                disabled={submitting}
-                aria-label="SSA office number"
-                className="flex-1 h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-              <button
-                type="submit"
-                disabled={submitting || !to.trim() || !matter.trim()}
-                className="h-10 px-5 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed whitespace-nowrap"
-              >
-                {submitting ? (
-                  <span className="inline-flex items-center">
-                    Dialing
-                    <span className="inline-flex ml-0.5 w-5 justify-start">
-                      <span className="dot-anim">.</span>
-                      <span className="dot-anim" style={{ animationDelay: "0.2s" }}>.</span>
-                      <span className="dot-anim" style={{ animationDelay: "0.4s" }}>.</span>
-                    </span>
+            <input
+              id="to"
+              type="tel"
+              inputMode="tel"
+              autoComplete="off"
+              placeholder="(555) 123-4567"
+              value={to}
+              onChange={(e) => setTo(formatUsPhone(e.target.value))}
+              disabled={submitting}
+              aria-label="SSA office number"
+              className="h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <button
+              type="submit"
+              disabled={submitting || !to.trim() || !matter.trim()}
+              className="h-10 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+            >
+              {submitting ? (
+                <span className="inline-flex items-center">
+                  Dialing
+                  <span className="inline-flex ml-0.5 w-5 justify-start">
+                    <span className="dot-anim">.</span>
+                    <span className="dot-anim" style={{ animationDelay: "0.2s" }}>.</span>
+                    <span className="dot-anim" style={{ animationDelay: "0.4s" }}>.</span>
                   </span>
-                ) : (
-                  "Initiate call"
-                )}
-              </button>
-            </div>
+                </span>
+              ) : (
+                "Initiate call"
+              )}
+            </button>
           </form>
 
           {toast && (
