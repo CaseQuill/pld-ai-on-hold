@@ -3,7 +3,7 @@ import HomeClient from "../home-client";
 
 export const dynamic = "force-dynamic";
 
-export default async function ClaimPage() {
+export default async function DemoPage() {
   const dbAvailable = hasDb();
   const initialCalls = dbAvailable
     ? await listRecentCalls(50).catch(() => [])
