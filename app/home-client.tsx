@@ -323,39 +323,37 @@ export default function HomeClient({
 
           <form
             onSubmit={onSubmit}
-            className="flex flex-col gap-3 max-w-xl mx-auto"
+            className="flex flex-col items-center gap-3 max-w-xl mx-auto"
           >
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                id="matter"
-                type="text"
-                autoComplete="off"
-                placeholder="Matter ID"
-                value={matter}
-                onChange={(e) => setMatter(e.target.value)}
-                disabled={submitting}
-                maxLength={100}
-                required
-                aria-label="Matter ID"
-                className="flex-1 h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-              <input
-                id="to"
-                type="tel"
-                inputMode="tel"
-                autoComplete="off"
-                placeholder="(555) 123-4567"
-                value={to}
-                onChange={(e) => setTo(formatUsPhone(e.target.value))}
-                disabled={submitting}
-                aria-label="SSA office number"
-                className="flex-1 h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-            </div>
+            <input
+              id="matter"
+              type="text"
+              autoComplete="off"
+              placeholder="Matter ID"
+              value={matter}
+              onChange={(e) => setMatter(e.target.value)}
+              disabled={submitting}
+              maxLength={100}
+              required
+              aria-label="Matter ID"
+              className="w-full max-w-xs h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <input
+              id="to"
+              type="tel"
+              inputMode="tel"
+              autoComplete="off"
+              placeholder="(555) 123-4567"
+              value={to}
+              onChange={(e) => setTo(formatUsPhone(e.target.value))}
+              disabled={submitting}
+              aria-label="SSA office number"
+              className="w-full max-w-xs h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+            />
             <button
               type="submit"
               disabled={submitting || !to.trim() || !matter.trim()}
-              className="self-center h-10 px-8 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="h-10 px-8 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <span className="inline-flex items-center">
