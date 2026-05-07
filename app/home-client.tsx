@@ -355,7 +355,7 @@ export default function HomeClient({
             <button
               type="submit"
               disabled={submitting || !to.trim() || !matter.trim()}
-              className="h-10 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="self-center h-10 px-8 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <span className="inline-flex items-center">
