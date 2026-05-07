@@ -105,13 +105,13 @@ function isRecentlyTransferred(c: CallRow, now: number): boolean {
   );
 }
 
-function buildClaimDemoRows(): CallRow[] {
+function buildClaimDemoRows(claimed: Set<string>): CallRow[] {
   const now = Date.now();
   return [
     {
       id: "demo-unclaimed",
       conversation_id: "demo_unclaimed",
-      to_number: "+15551234567",
+      to_number: "+13473748921",
       phnum_id: "demo",
       status: "transferred",
       fired_at: new Date(now - 5 * 60 * 1000).toISOString(),
@@ -119,13 +119,15 @@ function buildClaimDemoRows(): CallRow[] {
       end_reason: null,
       estimated_hold_minutes: 5,
       hold_minutes_reported_at: new Date(now - 4 * 60 * 1000).toISOString(),
-      matter_id: "Demo — ready to claim",
-      claimed_at: null,
+      matter_id: "7c8e2a91-4f3b-4d6a-9e1d-3a5c8b2f4d7e",
+      claimed_at: claimed.has("demo_unclaimed")
+        ? new Date(now - 5 * 1000).toISOString()
+        : null,
     },
     {
       id: "demo-claimed",
       conversation_id: "demo_claimed",
-      to_number: "+15551234567",
+      to_number: "+13473748921",
       phnum_id: "demo",
       status: "transferred",
       fired_at: new Date(now - 10 * 60 * 1000).toISOString(),
@@ -133,7 +135,7 @@ function buildClaimDemoRows(): CallRow[] {
       end_reason: null,
       estimated_hold_minutes: null,
       hold_minutes_reported_at: null,
-      matter_id: "Demo — claimed",
+      matter_id: "a4b2c1d9-3e8f-4b7a-8c5d-1f9e6a3b7c2d",
       claimed_at: new Date(now - 30 * 1000).toISOString(),
     },
   ];
@@ -173,6 +175,7 @@ export default function HomeClient({
   const [toast, setToast] = useState<Toast>(null);
 
   const [calls, setCalls] = useState<CallRow[]>(initialCalls);
+  const [demoClaimed, setDemoClaimed] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
   const [, setTick] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -252,11 +255,11 @@ export default function HomeClient({
 
   async function onClaim(conversationId: string) {
     if (conversationId.startsWith("demo_")) {
-      setToast({
-        kind: "success",
-        message: "Demo row — real calls will claim normally.",
+      setDemoClaimed((prev) => {
+        const next = new Set(prev);
+        next.add(conversationId);
+        return next;
       });
-      setTimeout(() => setToast(null), 3000);
       return;
     }
     const nowIso = new Date().toISOString();
@@ -391,7 +394,7 @@ export default function HomeClient({
           const start = safePage * PAGE_SIZE;
           const end = Math.min(start + PAGE_SIZE, sorted.length);
           const realVisible = sorted.slice(start, end);
-          const demoRows = showClaim ? buildClaimDemoRows() : [];
+          const demoRows = showClaim ? buildClaimDemoRows(demoClaimed) : [];
           const visible = [...demoRows, ...realVisible];
           return (
             <div className="bg-white border border-divider rounded-md shadow-sm p-6 sm:p-8">
@@ -451,15 +454,10 @@ export default function HomeClient({
                           const statusLabel = justTransferred
                             ? "Just transferred"
                             : STATUS_LABELS[statusKey] ?? c.status;
-                          const demo = isDemoRow(c);
                           return (
                             <tr
                               key={c.id}
-                              className={`border-b border-divider last:border-b-0 transition-colors ${
-                                demo
-                                  ? "bg-blue-50/40 hover:bg-blue-50/60"
-                                  : "hover:bg-surface-subtle"
-                              }`}
+                              className="border-b border-divider last:border-b-0 hover:bg-surface-subtle transition-colors"
                             >
                               <td className="px-6 sm:px-8 py-3 text-neutral-700 whitespace-nowrap">
                                 {formatLocalTime(c.fired_at)}
