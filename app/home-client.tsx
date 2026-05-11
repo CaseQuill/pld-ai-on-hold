@@ -91,7 +91,7 @@ function formatHoldCountdown(
 }
 
 const RECENT_END_WINDOW_MS = 3 * 60 * 1000;
-const RECENT_TRANSFER_WINDOW_MS = 60 * 1000;
+const RECENT_TRANSFER_WINDOW_MS = 120 * 1000;
 
 function pinTier(c: CallRow, now: number): number {
   if (c.status === "active") return 0;
