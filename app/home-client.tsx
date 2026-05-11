@@ -20,12 +20,14 @@ const STATUS_STYLES: Record<string, string> = {
   active: "bg-brand-light text-brand border border-brand/20",
   transferred: "bg-green-50 text-green-700 border border-green-200",
   failed: "bg-orange-50 text-orange-700 border border-orange-200",
+  no_answer: "bg-neutral-100 text-neutral-700 border border-neutral-300",
 };
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Active",
   transferred: "Transferred",
   failed: "Completed",
+  no_answer: "No Answer",
 };
 
 function formatUsPhone(raw: string): string {
@@ -138,6 +140,20 @@ function buildClaimDemoRows(claimed: Set<string>): CallRow[] {
       hold_minutes_reported_at: null,
       matter_id: "a4b2c1d9-3e8f-4b7a-8c5d-1f9e6a3b7c2d",
       claimed_at: new Date(now - 30 * 1000).toISOString(),
+    },
+    {
+      id: "demo-no-answer",
+      conversation_id: "demo_no_answer",
+      to_number: "+13473748921",
+      phnum_id: "demo",
+      status: "no_answer",
+      fired_at: new Date(now - 6 * 60 * 1000).toISOString(),
+      ended_at: new Date(now - 5 * 60 * 1000 - 30 * 1000).toISOString(),
+      end_reason: "No answer",
+      estimated_hold_minutes: null,
+      hold_minutes_reported_at: null,
+      matter_id: "e1c4d2b7-9a3f-4e8c-b1d6-7f2a4c8e9b3d",
+      claimed_at: null,
     },
   ];
 }

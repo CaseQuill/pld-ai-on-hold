@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 
-export type CallStatus = "active" | "transferred" | "failed";
+export type CallStatus = "active" | "transferred" | "failed" | "no_answer";
 
 export type CallRow = {
   id: string;
