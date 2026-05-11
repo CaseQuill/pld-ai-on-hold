@@ -124,7 +124,7 @@ function buildClaimDemoRows(claimed: Set<string>): CallRow[] {
       end_reason: null,
       estimated_hold_minutes: 5,
       hold_minutes_reported_at: new Date(now - 4 * 60 * 1000).toISOString(),
-      matter_id: "7c8e2a91-4f3b-4d6a-9e1d-3a5c8b2f4d7e",
+      matter_id: "MAT-260315125721",
       claimed_at: claimed.has("demo_unclaimed")
         ? new Date(now - 5 * 1000).toISOString()
         : null,
@@ -142,7 +142,7 @@ function buildClaimDemoRows(claimed: Set<string>): CallRow[] {
       end_reason: null,
       estimated_hold_minutes: null,
       hold_minutes_reported_at: null,
-      matter_id: "a4b2c1d9-3e8f-4b7a-8c5d-1f9e6a3b7c2d",
+      matter_id: "MAT-260318126104",
       claimed_at: new Date(now - 30 * 1000).toISOString(),
       litify_url:
         "https://finchlegal.lightning.force.com/lightning/r/litify_pm__Matter__c/a0X8K000007GRJbVBP/view",
@@ -158,7 +158,7 @@ function buildClaimDemoRows(claimed: Set<string>): CallRow[] {
       end_reason: "No answer",
       estimated_hold_minutes: null,
       hold_minutes_reported_at: null,
-      matter_id: "e1c4d2b7-9a3f-4e8c-b1d6-7f2a4c8e9b3d",
+      matter_id: "MAT-260311125380",
       claimed_at: null,
       litify_url: null,
     },
