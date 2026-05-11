@@ -10,10 +10,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AI on Hold — Finch",
+  title: "AI on Hold",
   description: "Start an SSA call. Our AI waits on hold and transfers to you when a rep picks up.",
   icons: {
-    icon: "/finch-logo.svg",
+    icon: "/finch-bird.png",
   },
 };
 
