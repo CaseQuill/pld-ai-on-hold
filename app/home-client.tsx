@@ -12,6 +12,7 @@ type Props = {
   showConversationId?: boolean;
   showClaim?: boolean;
   showDemoRows?: boolean;
+  disableSubmit?: boolean;
 };
 
 const PAGE_SIZE = 10;
@@ -186,6 +187,7 @@ export default function HomeClient({
   showConversationId = false,
   showClaim = false,
   showDemoRows = false,
+  disableSubmit = false,
 }: Props) {
   const [to, setTo] = useState("");
   const [matter, setMatter] = useState("");
@@ -373,7 +375,7 @@ export default function HomeClient({
             />
             <button
               type="submit"
-              disabled={submitting || !to.trim() || !matter.trim()}
+              disabled={submitting || !to.trim() || !matter.trim() || disableSubmit}
               className="h-10 px-8 rounded-md bg-brand hover:bg-brand-dark text-white text-sm font-medium shadow-sm transition-colors disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
             >
               {submitting ? (
@@ -402,6 +404,12 @@ export default function HomeClient({
             >
               {toast.message}
             </div>
+          )}
+
+          {disableSubmit && (
+            <p className="mt-4 text-center text-xs text-neutral-500">
+              Outbound calling is temporarily paused.
+            </p>
           )}
         </div>
 
