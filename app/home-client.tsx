@@ -406,11 +406,6 @@ export default function HomeClient({
             </div>
           )}
 
-          {disableSubmit && (
-            <p className="mt-4 text-center text-xs text-neutral-500">
-              Outbound calling is temporarily paused.
-            </p>
-          )}
         </div>
 
         {(() => {
