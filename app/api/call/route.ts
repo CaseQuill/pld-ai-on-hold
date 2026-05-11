@@ -17,9 +17,9 @@ function getClientIp(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
-  let body: { to?: unknown; matter?: unknown };
+  let body: { to?: unknown; matter?: unknown; url?: unknown };
   try {
-    body = (await req.json()) as { to?: unknown; matter?: unknown };
+    body = (await req.json()) as { to?: unknown; matter?: unknown; url?: unknown };
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }
@@ -43,6 +43,15 @@ export async function POST(req: NextRequest) {
     );
   }
   const matterId = matterRaw;
+
+  const urlRaw = typeof body.url === "string" ? body.url.trim() : "";
+  if (urlRaw.length > 500) {
+    return NextResponse.json(
+      { ok: false, error: "Litify URL is too long (max 500 chars)" },
+      { status: 400 }
+    );
+  }
+  const litifyUrl = urlRaw.length > 0 && /^https?:\/\//i.test(urlRaw) ? urlRaw : null;
 
   const ip = getClientIp(req);
   const ipLimit = await perIpLimiter.limit(ip);
@@ -94,6 +103,7 @@ export async function POST(req: NextRequest) {
         toNumber: phone.e164,
         phnumId,
         matterId,
+        litifyUrl,
       });
     } catch (err) {
       console.error("[pdl-dialer] Failed to persist call:", err);

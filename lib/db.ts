@@ -15,6 +15,7 @@ export type CallRow = {
   hold_minutes_reported_at: string | null;
   matter_id: string | null;
   claimed_at: string | null;
+  litify_url: string | null;
 };
 
 let sqlClient: ReturnType<typeof neon> | null = null;
@@ -36,11 +37,12 @@ export async function insertCall(args: {
   toNumber: string;
   phnumId: string;
   matterId: string | null;
+  litifyUrl: string | null;
 }): Promise<void> {
   const sql = getSql();
   await sql`
-    insert into calls (conversation_id, to_number, phnum_id, status, matter_id)
-    values (${args.conversationId}, ${args.toNumber}, ${args.phnumId}, 'active', ${args.matterId})
+    insert into calls (conversation_id, to_number, phnum_id, status, matter_id, litify_url)
+    values (${args.conversationId}, ${args.toNumber}, ${args.phnumId}, 'active', ${args.matterId}, ${args.litifyUrl})
     on conflict (conversation_id) do nothing
   `;
 }
@@ -66,7 +68,7 @@ export async function listRecentCalls(limit = 50): Promise<CallRow[]> {
     select id, conversation_id, to_number, phnum_id, status,
            fired_at, ended_at, end_reason,
            estimated_hold_minutes, hold_minutes_reported_at,
-           matter_id, claimed_at
+           matter_id, claimed_at, litify_url
     from calls
     order by fired_at desc
     limit ${limit}

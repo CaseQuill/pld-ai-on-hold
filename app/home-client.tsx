@@ -12,6 +12,7 @@ type Props = {
   showConversationId?: boolean;
   showClaim?: boolean;
   showDemoRows?: boolean;
+  showLitifyUrl?: boolean;
   disableSubmit?: boolean;
 };
 
@@ -127,6 +128,8 @@ function buildClaimDemoRows(claimed: Set<string>): CallRow[] {
       claimed_at: claimed.has("demo_unclaimed")
         ? new Date(now - 5 * 1000).toISOString()
         : null,
+      litify_url:
+        "https://finchlegal.lightning.force.com/lightning/r/litify_pm__Matter__c/a0X8K000005FQHaUAO/view",
     },
     {
       id: "demo-claimed",
@@ -141,6 +144,8 @@ function buildClaimDemoRows(claimed: Set<string>): CallRow[] {
       hold_minutes_reported_at: null,
       matter_id: "a4b2c1d9-3e8f-4b7a-8c5d-1f9e6a3b7c2d",
       claimed_at: new Date(now - 30 * 1000).toISOString(),
+      litify_url:
+        "https://finchlegal.lightning.force.com/lightning/r/litify_pm__Matter__c/a0X8K000007GRJbVBP/view",
     },
     {
       id: "demo-no-answer",
@@ -155,6 +160,7 @@ function buildClaimDemoRows(claimed: Set<string>): CallRow[] {
       hold_minutes_reported_at: null,
       matter_id: "e1c4d2b7-9a3f-4e8c-b1d6-7f2a4c8e9b3d",
       claimed_at: null,
+      litify_url: null,
     },
   ];
 }
@@ -187,10 +193,12 @@ export default function HomeClient({
   showConversationId = false,
   showClaim = false,
   showDemoRows = false,
+  showLitifyUrl = false,
   disableSubmit = false,
 }: Props) {
   const [to, setTo] = useState("");
   const [matter, setMatter] = useState("");
+  const [url, setUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
 
@@ -240,7 +248,11 @@ export default function HomeClient({
       const res = await fetch("/api/call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to, matter: matter.trim() || undefined }),
+        body: JSON.stringify({
+          to,
+          matter: matter.trim() || undefined,
+          url: showLitifyUrl ? url.trim() || undefined : undefined,
+        }),
       });
       const data = (await res.json()) as {
         ok: boolean;
@@ -252,6 +264,7 @@ export default function HomeClient({
         setToast({ kind: "success", message: `Call initiated to ${data.to}` });
         setTo("");
         setMatter("");
+        setUrl("");
         setPage(0);
         refreshHistory();
       } else {
@@ -274,6 +287,18 @@ export default function HomeClient({
   }
 
   async function onClaim(conversationId: string) {
+    const target = calls.find((c) => c.conversation_id === conversationId);
+    const demoTarget =
+      conversationId.startsWith("demo_") && showDemoRows
+        ? buildClaimDemoRows(demoClaimed).find(
+            (c) => c.conversation_id === conversationId
+          )
+        : null;
+    const link = target?.litify_url ?? demoTarget?.litify_url ?? null;
+    if (link) {
+      window.open(link, "_blank", "noopener,noreferrer");
+    }
+
     if (conversationId.startsWith("demo_")) {
       setDemoClaimed((prev) => {
         const next = new Set(prev);
@@ -358,21 +383,53 @@ export default function HomeClient({
               onChange={(e) => setTo(formatUsPhone(e.target.value))}
               disabled={submitting}
               aria-label="SSA office number"
-              className="w-full max-w-xs h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full ${
+                showLitifyUrl ? "max-w-md" : "max-w-xs"
+              } h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed`}
             />
-            <input
-              id="matter"
-              type="text"
-              autoComplete="off"
-              placeholder="Matter ID"
-              value={matter}
-              onChange={(e) => setMatter(e.target.value)}
-              disabled={submitting}
-              maxLength={100}
-              required
-              aria-label="Matter ID"
-              className="w-full max-w-xs h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
-            />
+            {showLitifyUrl ? (
+              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                <input
+                  id="matter"
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Matter ID"
+                  value={matter}
+                  onChange={(e) => setMatter(e.target.value)}
+                  disabled={submitting}
+                  maxLength={100}
+                  required
+                  aria-label="Matter ID"
+                  className="flex-1 h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <input
+                  id="url"
+                  type="url"
+                  autoComplete="off"
+                  placeholder="Litify URL (optional)"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  disabled={submitting}
+                  maxLength={500}
+                  aria-label="Litify URL"
+                  className="flex-1 h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+            ) : (
+              <input
+                id="matter"
+                type="text"
+                autoComplete="off"
+                placeholder="Matter ID"
+                value={matter}
+                onChange={(e) => setMatter(e.target.value)}
+                disabled={submitting}
+                maxLength={100}
+                required
+                aria-label="Matter ID"
+                className="w-full max-w-xs h-10 rounded-md bg-white border border-divider px-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-xs transition focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            )}
             <button
               type="submit"
               disabled={submitting || !to.trim() || !matter.trim() || disableSubmit}
@@ -503,7 +560,18 @@ export default function HomeClient({
                                 className="px-4 py-3 text-neutral-700 font-mono text-xs max-w-[180px] truncate"
                                 title={c.matter_id ?? undefined}
                               >
-                                {c.matter_id ?? ""}
+                                {c.matter_id && c.litify_url ? (
+                                  <a
+                                    href={c.litify_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-brand hover:text-brand-dark hover:underline transition-colors"
+                                  >
+                                    {c.matter_id}
+                                  </a>
+                                ) : (
+                                  c.matter_id ?? ""
+                                )}
                               </td>
                               <td className="px-4 py-3">
                                 <span
