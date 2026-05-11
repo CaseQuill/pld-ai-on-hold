@@ -14,6 +14,7 @@ export default async function ConvPage() {
       initialCalls={initialCalls}
       dbAvailable={dbAvailable}
       showConversationId
+      disableSubmit
     />
   );
 }

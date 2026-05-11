@@ -15,6 +15,7 @@ export default async function DemoPage() {
       dbAvailable={dbAvailable}
       showClaim
       showDemoRows
+      disableSubmit
     />
   );
 }
