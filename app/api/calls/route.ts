@@ -10,15 +10,13 @@ export async function GET() {
     return NextResponse.json({ ok: false, error: "Database not configured" }, { status: 500 });
   }
 
-  // Opt-in sweep: when enabled, before returning the list we scan active
-  // rows older than 30s and ask EL whether each call ever connected. Rows
-  // that EL has settled with zero duration get flipped to no_answer.
-  if (process.env.NO_ANSWER_SWEEP_ENABLED === "1") {
-    try {
-      await sweepStuckCalls();
-    } catch (err) {
-      console.error("[pdl-dialer] no-answer sweep failed:", err);
-    }
+  // Before returning the list we scan active rows older than 30s and ask
+  // EL whether each call ever connected. Rows EL has settled with zero
+  // duration get flipped to no_answer.
+  try {
+    await sweepStuckCalls();
+  } catch (err) {
+    console.error("[pdl-dialer] no-answer sweep failed:", err);
   }
 
   try {
