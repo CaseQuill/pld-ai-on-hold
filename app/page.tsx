@@ -14,6 +14,7 @@ export default async function Home() {
       initialCalls={initialCalls}
       dbAvailable={dbAvailable}
       showClaim
+      showLitifyUrl
     />
   );
 }
