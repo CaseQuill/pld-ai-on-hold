@@ -23,6 +23,7 @@ const STATUS_STYLES: Record<string, string> = {
   transferred: "bg-green-50 text-green-700 border border-green-200",
   failed: "bg-orange-50 text-orange-700 border border-orange-200",
   no_answer: "bg-neutral-100 text-neutral-700 border border-neutral-300",
+  after_hours: "bg-purple-50 text-purple-700 border border-purple-200",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -30,6 +31,7 @@ const STATUS_LABELS: Record<string, string> = {
   transferred: "Transferred",
   failed: "Completed",
   no_answer: "No Answer",
+  after_hours: "After Hours",
 };
 
 function formatUsPhone(raw: string): string {
